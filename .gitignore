@@ -120,3 +120,7 @@ prime/
 
 # A Makefile for custom make targets
 Makefile.local
+
+# LFS custom build artifacts
+lfs-gitea-linux
+lfs-gitea.exe

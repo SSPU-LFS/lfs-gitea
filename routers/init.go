@@ -1,4 +1,4 @@
-// Copyright 2016 The Gitea Authors. All rights reserved.
+﻿// Copyright 2016 The Gitea Authors. All rights reserved.
 // SPDX-License-Identifier: MIT
 
 package routers
@@ -26,8 +26,6 @@ import (
 	"gitea.dev/modules/util"
 	"gitea.dev/modules/web"
 	"gitea.dev/modules/web/routing"
-	actions_router "gitea.dev/routers/api/actions"
-	packages_router "gitea.dev/routers/api/packages"
 	apiv1 "gitea.dev/routers/api/v1"
 	"gitea.dev/routers/common"
 	"gitea.dev/routers/private"
@@ -180,32 +178,15 @@ func NormalRoutes() *web.Router {
 
 	r.AfterRouting(common.MaintenanceModeHandler())
 
-	r.Mount("/", web_routers.Routes())
+	r.Mount("/", web_routers.GitOnlyRoutes())
 	r.Mount("/api/v1", apiv1.Routes())
 	r.Mount("/api/internal", private.Routes())
 
 	r.Post("/-/fetch-redirect", common.FetchRedirectDelegate)
 
-	if setting.Packages.Enabled {
-		// This implements package support for most package managers
-		r.Mount("/api/packages", packages_router.CommonRoutes())
-		// This implements the OCI API, this container registry "/v2" endpoint must be in the root of the site.
-		// If site admin deploys Gitea in a sub-path, they must configure their reverse proxy to map the "https://host/v2" endpoint to Gitea.
-		r.Mount("/v2", packages_router.ContainerRoutes())
-	}
+	// Packages routes removed for LFS build
 
-	if setting.Actions.Enabled {
-		prefix := "/api/actions"
-		r.Mount(prefix, actions_router.Routes(prefix))
-
-		// TODO: Pipeline api used for runner internal communication with gitea server. but only artifact is used for now.
-		// In Github, it uses ACTIONS_RUNTIME_URL=https://pipelines.actions.githubusercontent.com/fLgcSHkPGySXeIFrg8W8OBSfeg3b5Fls1A1CwX566g8PayEGlg/
-		// TODO: this prefix should be generated with a token string with runner ?
-		prefix = "/api/actions_pipeline"
-		r.Mount(prefix, actions_router.ArtifactsRoutes(prefix))
-		prefix = actions_router.ArtifactV4RouteBase
-		r.Mount(prefix, actions_router.ArtifactsV4Routes(prefix))
-	}
+	// Actions routes removed for LFS build
 
 	r.NotFound(func(w http.ResponseWriter, req *http.Request) {
 		defer routing.RecordFuncInfo(req.Context(), routing.GetFuncInfo(http.NotFound, "GlobalNotFound"))()
